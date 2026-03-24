@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // LOGIN
+    // 🔐 LOGIN
     public function login(Request $request)
     {
         $request->validate([
@@ -33,7 +33,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // LOGOUT
+    // 🚪 LOGOUT
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();
@@ -41,5 +41,11 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logout exitoso'
         ]);
+    }
+
+    // 👤 USUARIO ACTUAL (PRO)
+    public function me(Request $request)
+    {
+        return response()->json($request->user());
     }
 }
