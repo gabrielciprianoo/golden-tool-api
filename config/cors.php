@@ -13,6 +13,10 @@ return [
         'http://127.0.0.1:5173',
     ],
 
+    'allowed_origins_patterns' => [
+        '#^http://192\.168\.\d+\.\d+(:\d+)?$#',
+    ],
+
     'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
