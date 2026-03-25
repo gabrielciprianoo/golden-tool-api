@@ -6,11 +6,13 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://192.168.1.113:5173',
-    ],
+    // 🔥 Lee desde .env
+    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', '')),
 
-    'allowed_origins_patterns' => [],
+    // 🔥 Permite toda la red local automáticamente
+    'allowed_origins_patterns' => [
+        env('CORS_ALLOWED_ORIGINS_PATTERN'),
+    ],
 
     'allowed_headers' => ['*'],
 
