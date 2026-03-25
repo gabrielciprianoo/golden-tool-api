@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -13,39 +14,41 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required|min:6',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Credenciales incorrectas'
+                'message' => 'Credenciales incorrectas',
             ], 401);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'message' => 'Login exitoso',
-            'token' => $token,
-            'user' => $user
+            'user' => $user->only(['id', 'name', 'email']),
         ]);
     }
 
     // 🚪 LOGOUT
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
-            'message' => 'Logout exitoso'
+            'message' => 'Logout exitoso',
         ]);
     }
 
-    // 👤 USUARIO ACTUAL (PRO)
+    // 👤 USUARIO ACTUAL
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json($request->user()->only(['id', 'name', 'email']));
     }
 }

@@ -10,9 +10,7 @@ return [
     'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', '')),
 
     // 🔥 Permite toda la red local automáticamente
-    'allowed_origins_patterns' => [
-        env('CORS_ALLOWED_ORIGINS_PATTERN'),
-    ],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
@@ -20,6 +18,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 
 ];
