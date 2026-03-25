@@ -6,11 +6,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ["http://192.168.1.113:5173"],
-
-    'allowed_origins_patterns' => [
-        env('CORS_ALLOWED_ORIGINS_PATTERN', '#^http://192\.168\.\d+\.\d+(:\d+)?$#'),
+    'allowed_origins' => [
+        'http://192.168.1.113:5173',
     ],
+
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
