@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -25,11 +24,12 @@ class AuthController extends Controller
             ], 401);
         }
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        // 🔥 CREAR TOKEN (AQUÍ ESTÁ EL CAMBIO IMPORTANTE)
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login exitoso',
+            'token' => $token,
             'user' => $user->only(['id', 'name', 'email']),
         ]);
     }
@@ -37,9 +37,8 @@ class AuthController extends Controller
     // 🚪 LOGOUT
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // 🔥 BORRAR TOKENS
+        $request->user()->tokens()->delete();
 
         return response()->json([
             'message' => 'Logout exitoso',
@@ -49,6 +48,8 @@ class AuthController extends Controller
     // 👤 USUARIO ACTUAL
     public function me(Request $request)
     {
-        return response()->json($request->user()->only(['id', 'name', 'email']));
+        return response()->json(
+            $request->user()->only(['id', 'name', 'email'])
+        );
     }
 }

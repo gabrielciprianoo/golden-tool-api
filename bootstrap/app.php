@@ -12,7 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi();
+
+        // ❌ NO usar esto (solo para cookies/sanctum stateful)
+        // $middleware->statefulApi();
+
+        // ✅ Permitir login sin CSRF
         $middleware->validateCsrfTokens(except: [
             'api/login',
         ]);
