@@ -1,48 +1,75 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useCallback, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import { useWorkerStore } from '../../stores/useWorkerStore';
+import { workerSchema } from '../../schemas/workerSchema';
+import { safeParse } from 'valibot';
+import Modal from '../../Components/Modal';
+import Badge from '../../Components/Badge';
 
 export default function WorkersIndex() {
     const { workers, filters } = usePage().props;
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingWorker, setEditingWorker] = useState(null);
     const [search, setSearch] = useState(filters?.search || '');
+    const [errors, setErrors] = useState({});
 
     const {
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        formState: { errors },
-    } = useForm();
+        isModalOpen,
+        editingWorker,
+        formData,
+        openCreateModal,
+        openEditModal,
+        closeModal,
+        setFormData,
+    } = useWorkerStore();
 
-    const openCreateModal = () => {
-        setEditingWorker(null);
-        reset();
-        setIsModalOpen(true);
+    const handleSearch = useCallback((value) => {
+        setSearch(value);
+        router.get('/workers', { search: value }, { replace: true });
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (search !== filters?.search) {
+                router.get('/workers', { search }, { replace: true });
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    const validateForm = () => {
+        const result = safeParse(workerSchema, formData);
+        if (result.success) {
+            setErrors({});
+            return true;
+        }
+        const fieldErrors = {};
+        result.issues.forEach((issue) => {
+            const key = issue.path?.[0]?.key;
+            if (key) {
+                fieldErrors[key] = issue.message;
+            }
+        });
+        setErrors(fieldErrors);
+        return false;
     };
 
-    const openEditModal = (worker) => {
-        setEditingWorker(worker);
-        setValue('name', worker.name);
-        setValue('lastname', worker.lastname);
-        setValue('area', worker.area);
-        setIsModalOpen(true);
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ [name]: value });
+        if (errors[name]) {
+            setErrors((prev) => ({ ...prev, [name]: null }));
+        }
     };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setEditingWorker(null);
-        reset();
-    };
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
 
-    const onSubmit = (data) => {
         if (editingWorker) {
-            router.put(`/workers/${editingWorker.id}`, data, {
+            router.put(`/workers/${editingWorker.id}`, formData, {
                 onSuccess: () => closeModal(),
             });
         } else {
-            router.post('/workers', data, {
+            router.post('/workers', formData, {
                 onSuccess: () => closeModal(),
             });
         }
@@ -52,12 +79,6 @@ export default function WorkersIndex() {
         if (confirm('¿Estás seguro de eliminar este trabajador?')) {
             router.delete(`/workers/${id}`);
         }
-    };
-
-    const handleSearch = (e) => {
-        const value = e.target.value;
-        setSearch(value);
-        router.get('/workers', { search: value }, { replace: true });
     };
 
     return (
@@ -78,7 +99,7 @@ export default function WorkersIndex() {
                         type="text"
                         placeholder="Buscar por nombre, código o área..."
                         value={search}
-                        onChange={handleSearch}
+                        onChange={(e) => handleSearch(e.target.value)}
                         className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
@@ -124,15 +145,7 @@ export default function WorkersIndex() {
                                             {worker.lastname}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span
-                                                className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                                    worker.area === 'montaje/desmontaje'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-purple-100 text-purple-800'
-                                                }`}
-                                            >
-                                                {worker.area}
-                                            </span>
+                                            <Badge>{worker.area}</Badge>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                             <button
@@ -156,87 +169,80 @@ export default function WorkersIndex() {
                 </div>
             </div>
 
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4">
-                            {editingWorker ? 'Editar Trabajador' : 'Nuevo Trabajador'}
-                        </h2>
-                        <form onSubmit={handleSubmit(onSubmit)}>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Nombre
-                                </label>
-                                <input
-                                    {...register('name', {
-                                        required: 'El nombre es requerido',
-                                        pattern: {
-                                            value: /^[\pL\s]+$/u,
-                                            message: 'Solo se permiten letras',
-                                        },
-                                    })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                                {errors.name && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-                                )}
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Apellidos
-                                </label>
-                                <input
-                                    {...register('lastname', {
-                                        required: 'Los apellidos son requeridos',
-                                        pattern: {
-                                            value: /^[\pL\s]+$/u,
-                                            message: 'Solo se permiten letras',
-                                        },
-                                    })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                                {errors.lastname && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.lastname.message}</p>
-                                )}
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Área
-                                </label>
-                                <select
-                                    {...register('area', { required: 'El área es requerida' })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Seleccionar área</option>
-                                    <option value="montaje/desmontaje">Montaje/Desmontaje</option>
-                                    <option value="armado/desarmado">Armado/Desarmado</option>
-                                </select>
-                                {errors.area && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.area.message}</p>
-                                )}
-                            </div>
-
-                            <div className="flex justify-end gap-3">
-                                <button
-                                    type="button"
-                                    onClick={closeModal}
-                                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                >
-                                    {editingWorker ? 'Actualizar' : 'Crear'}
-                                </button>
-                            </div>
-                        </form>
+            <Modal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                title={editingWorker ? 'Editar Trabajador' : 'Nuevo Trabajador'}
+            >
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre
+                        </label>
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                        {errors.name && (
+                            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                        )}
                     </div>
-                </div>
-            )}
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Apellidos
+                        </label>
+                        <input
+                            type="text"
+                            name="lastname"
+                            value={formData.lastname}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                        {errors.lastname && (
+                            <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>
+                        )}
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Área
+                        </label>
+                        <select
+                            name="area"
+                            value={formData.area}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Seleccionar área</option>
+                            <option value="montaje/desmontaje">Montaje/Desmontaje</option>
+                            <option value="armado/desarmado">Armado/Desarmado</option>
+                        </select>
+                        {errors.area && (
+                            <p className="text-red-500 text-sm mt-1">{errors.area}</p>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            {editingWorker ? 'Actualizar' : 'Crear'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }
