@@ -17,12 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
-        // ❌ NO usar esto (solo para cookies/sanctum stateful)
-        // $middleware->statefulApi();
+        $middleware->statefulApi();
 
-        // ✅ Permitir login sin CSRF
         $middleware->validateCsrfTokens(except: [
-            'api/login',
+            'api/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
