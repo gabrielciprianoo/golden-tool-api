@@ -20,6 +20,8 @@ Route::get('/asignations', [AsignationController::class, 'index']);
 Route::post('/asignations', [AsignationController::class, 'store']);
 Route::get('/asignations/{id}', [AsignationController::class, 'show']);
 Route::delete('/asignations/{id}', [AsignationController::class, 'destroy']);
+Route::put('/asignations/{id}', [AsignationController::class, 'update']);
+Route::patch('/asignations/{id}', [AsignationController::class, 'update']);
 
 
 /*

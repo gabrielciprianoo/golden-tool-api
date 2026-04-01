@@ -91,22 +91,24 @@ class AsignationController extends Controller
     }
 
     // ✏️ Actualizar asignación
-    public function update(Request $request, $id)
-    {
-        $asignation = Asignation::findOrFail($id);
+   public function update(Request $request, $id)
+{
+    $asignation = Asignation::findOrFail($id);
 
-        $request->validate([
-            'state' => 'sometimes|in:nuevo,buen estado,regular,mal estado,obsoleto',
-            'date' => 'sometimes|date',
-        ]);
+    $request->validate([
+        'state' => 'sometimes|in:nuevo,buen estado,regular,mal estado,obsoleto',
+        'date' => 'sometimes|date',
+        'assigned_quantity' => 'sometimes|integer|min:1',
+    ]);
 
-        $asignation->update($request->only(['state', 'date']));
+    $asignation->update(
+        $request->only(['state', 'date', 'assigned_quantity'])
+    );
 
-        return response()->json([
-            'data' => $asignation->load(['tool', 'worker'])
-        ]);
-    }
-
+    return response()->json([
+        'data' => $asignation->load(['tool', 'worker'])
+    ]);
+}
     // ❌ Eliminar (y devolver stock)
     public function destroy($id)
     {
