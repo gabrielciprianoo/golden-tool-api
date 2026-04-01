@@ -24,6 +24,7 @@ Route::get('/asignations/{id}', [AsignationController::class, 'show']);
 Route::delete('/asignations/{id}', [AsignationController::class, 'destroy']);
 Route::put('/asignations/{id}', [AsignationController::class, 'update']);
 Route::patch('/asignations/{id}', [AsignationController::class, 'update']);
+Route::get('/asignations/worker/{workerId}', [AsignationController::class, 'getByWorker']);
 
 
 /*
