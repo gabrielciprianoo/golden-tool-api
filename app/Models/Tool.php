@@ -15,4 +15,8 @@ class Tool extends Model
         'quantity',
         'unassigned_quantity',
     ];
+        public function asignations()
+    {
+        return $this->hasMany(Asignation::class);
+    }
 }
