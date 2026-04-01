@@ -137,4 +137,16 @@ class AsignationController extends Controller
             ], 500);
         }
     }
+
+    public function getByWorker($workerId)
+{
+    $assignations = Asignation::with(['tool', 'worker'])
+        ->where('worker_id', $workerId)
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $assignations
+    ]);
+}
 }

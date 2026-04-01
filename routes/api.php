@@ -11,6 +11,8 @@ use App\Http\Controllers\AsignationController;
 | Public Routes (SIN autenticación)
 |--------------------------------------------------------------------------
 */
+Route::get('/inventory-check', [AsignationController::class, 'inventoryCheck']);
+Route::post('/inventory-fix/{toolId}', [AsignationController::class, 'fixInventory']);
 
 // 🔐 Login (con throttle para evitar ataques)
 Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login']);
