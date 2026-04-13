@@ -22,6 +22,7 @@ class ToolController extends Controller
             'entry_date' => 'required|date',
             'quantity' => 'required|integer',
             'unassigned_quantity' => 'required|integer',
+            'warranty' => 'required|string|in:con garantia,sin garantia',
         ]);
 
         $tool = Tool::create($request->all());
@@ -63,6 +64,7 @@ class ToolController extends Controller
             'entry_date' => 'sometimes|date',
             'quantity' => 'sometimes|integer',
             'unassigned_quantity' => 'sometimes|integer',
+            'warranty' => 'sometimes|string|in:con garantia,sin garantia',
         ]);
 
         $tool->update($request->all());

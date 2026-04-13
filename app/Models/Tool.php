@@ -14,6 +14,7 @@ class Tool extends Model
         'entry_date',
         'quantity',
         'unassigned_quantity',
+        'warranty',
     ];
         public function asignations()
     {
