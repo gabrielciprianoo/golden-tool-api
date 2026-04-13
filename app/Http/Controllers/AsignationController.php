@@ -47,35 +47,37 @@ class AsignationController extends Controller
         // 🚨 VALIDACIÓN CORRECTA (aquí estaba el error)
         if ($tool->unassigned_quantity < $request->assigned_quantity) {
             return response()->json([
-                'message' => 'No hay suficiente stock disponible'
+                'message' => 'No hay suficiente stock disponible',
             ], 400);
         }
 
         try {
-            $asignation = DB::transaction(function () use ($request, $tool) {
+            $asignations = DB::transaction(function () use ($request, $tool) {
+                $created = [];
 
-                $asignation = Asignation::create([
-                    'tool_id' => $request->tool_id,
-                    'worker_id' => $request->worker_id,
-                    'assigned_quantity' => $request->assigned_quantity,
-                    'state' => $request->state,
-                    'date' => $request->date,
-                ]);
+                for ($i = 0; $i < $request->assigned_quantity; $i++) {
+                    $created[] = Asignation::create([
+                        'tool_id' => $request->tool_id,
+                        'worker_id' => $request->worker_id,
+                        'assigned_quantity' => 1,
+                        'state' => $request->state,
+                        'date' => $request->date,
+                    ]);
+                }
 
-                // 🔻 DESCONTAR CORRECTAMENTE
                 $tool->decrement('unassigned_quantity', $request->assigned_quantity);
 
-                return $asignation;
+                return $created;
             });
 
             return response()->json([
-                'data' => $asignation->load(['tool', 'worker'])
+                'data' => collect($asignations)->map->load(['tool', 'worker']),
             ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al crear la asignación',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -86,29 +88,30 @@ class AsignationController extends Controller
         $asignation = Asignation::with(['tool', 'worker'])->findOrFail($id);
 
         return response()->json([
-            'data' => $asignation
+            'data' => $asignation,
         ]);
     }
 
     // ✏️ Actualizar asignación
-   public function update(Request $request, $id)
-{
-    $asignation = Asignation::findOrFail($id);
+    public function update(Request $request, $id)
+    {
+        $asignation = Asignation::findOrFail($id);
 
-    $request->validate([
-        'state' => 'sometimes|in:nuevo,buen estado,regular,mal estado,obsoleto',
-        'date' => 'sometimes|date',
-        'assigned_quantity' => 'sometimes|integer|min:1',
-    ]);
+        $request->validate([
+            'state' => 'sometimes|in:nuevo,buen estado,regular,mal estado,obsoleto',
+            'date' => 'sometimes|date',
+            'assigned_quantity' => 'sometimes|integer|min:1',
+        ]);
 
-    $asignation->update(
-        $request->only(['state', 'date', 'assigned_quantity'])
-    );
+        $asignation->update(
+            $request->only(['state', 'date', 'assigned_quantity'])
+        );
 
-    return response()->json([
-        'data' => $asignation->load(['tool', 'worker'])
-    ]);
-}
+        return response()->json([
+            'data' => $asignation->load(['tool', 'worker']),
+        ]);
+    }
+
     // ❌ Eliminar (y devolver stock)
     public function destroy($id)
     {
@@ -127,26 +130,26 @@ class AsignationController extends Controller
             });
 
             return response()->json([
-                'message' => 'Asignación eliminada correctamente'
+                'message' => 'Asignación eliminada correctamente',
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al eliminar la asignación',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     public function getByWorker($workerId)
-{
-    $assignations = Asignation::with(['tool', 'worker'])
-        ->where('worker_id', $workerId)
-        ->get();
+    {
+        $assignations = Asignation::with(['tool', 'worker'])
+            ->where('worker_id', $workerId)
+            ->get();
 
-    return response()->json([
-        'success' => true,
-        'data' => $assignations
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'data' => $assignations,
+        ]);
+    }
 }

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Tool extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'category',
@@ -15,7 +18,12 @@ class Tool extends Model
         'quantity',
         'unassigned_quantity',
     ];
-        public function asignations()
+
+    protected $casts = [
+        'price' => 'float',
+    ];
+
+    public function asignations()
     {
         return $this->hasMany(Asignation::class);
     }
