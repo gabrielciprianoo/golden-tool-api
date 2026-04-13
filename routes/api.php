@@ -1,10 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AsignationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ToolController;
 use App\Http\Controllers\WorkerController;
-use App\Http\Controllers\AsignationController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +27,6 @@ Route::put('/asignations/{id}', [AsignationController::class, 'update']);
 Route::patch('/asignations/{id}', [AsignationController::class, 'update']);
 Route::get('/asignations/worker/{workerId}', [AsignationController::class, 'getByWorker']);
 
-
 /*
 |--------------------------------------------------------------------------
 | Protected Routes (requieren token - Sanctum)
@@ -45,6 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 👷 Workers (REST completo)
     Route::apiResource('workers', WorkerController::class);
+
+    // 📋 Reviews
+    Route::get('/reviews', [ReviewController::class, 'index']);
+    Route::post('/reviews', [ReviewController::class, 'store']);
+    Route::get('/reviews/{id}', [ReviewController::class, 'show']);
 
     // 🔐 Auth
     Route::post('/logout', [AuthController::class, 'logout']);
