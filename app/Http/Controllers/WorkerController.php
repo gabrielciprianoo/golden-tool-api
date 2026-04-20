@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Worker;
+use App\Models\Asignation;
+use App\Models\Tool;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,10 +48,23 @@ public function store(Request $request)
     return response()->json($worker);
 }
 
-   public function destroy(Worker $worker)
-{
-    $worker->delete();
+public function destroy(Worker $worker)
+   {
+       $asignations = Asignation::where('worker_id', $worker->id)->get();
 
-    return response()->json(['message' => 'Deleted']);
-}
+foreach ($asignations as $asignation) {
+            $tool = Tool::find($asignation->tool_id);
+            if ($tool) {
+                $tool->update([
+                    'unassigned_quantity' => $tool->unassigned_quantity + $asignation->assigned_quantity,
+                ]);
+            }
+
+            $asignation->delete();
+        }
+
+       $worker->delete();
+
+       return response()->json(['message' => 'Deleted']);
+   }
 }
