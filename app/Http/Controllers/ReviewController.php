@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asignation;
 use App\Models\LostTool;
+use App\Models\Obsolete;
 use App\Models\Review;
 use App\Models\ReviewItem;
 use Illuminate\Http\JsonResponse;
@@ -54,6 +55,9 @@ class ReviewController extends Controller
                     $quantityLost = $asignation->assigned_quantity - $quantityPresent;
                     $previousState = $asignation->state;
 
+                    $newState = $item['new_state'];
+                    $isObsolete = $newState === 'obsoleto';
+
                     if ($quantityLost > 0) {
                         LostTool::create([
                             'review_id' => $review->id,
@@ -64,14 +68,33 @@ class ReviewController extends Controller
                         ]);
 
                         $asignation->tool->decrement('quantity', $quantityLost);
+
+                        if ($asignation->tool->unassigned_quantity > 0) {
+                            $asignation->tool->decrement('unassigned_quantity', min($quantityLost, $asignation->tool->unassigned_quantity));
+                        }
                     }
 
-                    if ($quantityPresent === 0) {
+                    if ($isObsolete) {
+                        Obsolete::create([
+                            'tool_id' => $asignation->tool_id,
+                            'worker_id' => $asignation->worker_id,
+                            'date' => now()->toDateString(),
+                        ]);
+
+                        $asignation->tool->decrement('quantity', $quantityPresent);
+
+                        $quantityBefore = $asignation->assigned_quantity;
+                        if ($quantityBefore > 0 && $asignation->tool->unassigned_quantity > 0) {
+                            $asignation->tool->decrement('unassigned_quantity', min($quantityBefore, $asignation->tool->unassigned_quantity));
+                        }
+
+                        $asignation->delete();
+                    } elseif ($quantityPresent === 0) {
                         $asignation->delete();
                     } else {
                         $asignation->update([
                             'assigned_quantity' => $quantityPresent,
-                            'state' => $item['new_state'],
+                            'state' => $newState,
                         ]);
                     }
 
@@ -80,7 +103,7 @@ class ReviewController extends Controller
                         'tool_id' => $asignation->tool_id,
                         'worker_id' => $asignation->worker_id,
                         'previous_state' => $previousState,
-                        'new_state' => $quantityPresent > 0 ? $item['new_state'] : null,
+                        'new_state' => $isObsolete ? null : $newState,
                     ]);
                 }
 
