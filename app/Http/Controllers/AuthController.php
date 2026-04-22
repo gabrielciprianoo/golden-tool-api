@@ -24,7 +24,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login exitoso',
-            'user' => Auth::user()->only(['id', 'name', 'email']),
+            'user' => Auth::user()->only(['id', 'name', 'email', 'type_user']),
         ]);
     }
 
@@ -43,7 +43,7 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json(
-            $request->user()->only(['id', 'name', 'email'])
+            $request->user()->only(['id', 'name', 'email', 'type_user'])
         );
     }
 }

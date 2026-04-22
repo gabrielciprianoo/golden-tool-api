@@ -35,23 +35,20 @@ Route::get('/asignations/worker/{workerId}', [AsignationController::class, 'getB
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    // 🔧 Tools
-    Route::get('/tools', [ToolController::class, 'index']);
-    Route::post('/tool', [ToolController::class, 'store']);
-    Route::get('/tool/{id}', [ToolController::class, 'show']);
-    Route::put('/tool/{id}', [ToolController::class, 'update']);
-    Route::patch('/tool/{id}', [ToolController::class, 'update']);
-    Route::delete('/tool/{id}', [ToolController::class, 'destroy']);
+    Route::middleware('isAdmin')->group(function () {
+        Route::get('/tools', [ToolController::class, 'index']);
+        Route::post('/tool', [ToolController::class, 'store']);
+        Route::get('/tool/{id}', [ToolController::class, 'show']);
+        Route::put('/tool/{id}', [ToolController::class, 'update']);
+        Route::patch('/tool/{id}', [ToolController::class, 'update']);
+        Route::delete('/tool/{id}', [ToolController::class, 'destroy']);
 
-    // 👷 Workers (REST completo)
-    Route::apiResource('workers', WorkerController::class);
+        Route::apiResource('workers', WorkerController::class);
 
-    // 📋 Reviews
-    Route::get('/reviews', [ReviewController::class, 'index']);
-    Route::post('/reviews', [ReviewController::class, 'store']);
-    Route::get('/reviews/{id}', [ReviewController::class, 'show']);
+        Route::get('/reviews', [ReviewController::class, 'index']);
+        Route::post('/reviews', [ReviewController::class, 'store']);
+    });
 
-    // 🔐 Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 });
