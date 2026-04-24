@@ -21,11 +21,21 @@ class ToolController extends Controller
             'supplier' => 'required|string',
             'entry_date' => 'required|date',
             'quantity' => 'required|integer',
-            'unassigned_quantity' => 'required|integer',
             'warranty' => 'required|string|in:con garantia,sin garantia',
         ]);
 
-        $tool = Tool::create($request->all());
+        $quantity = $request->quantity;
+
+        $tool = Tool::create([
+            'name' => $request->name,
+            'category' => $request->category,
+            'price' => $request->price,
+            'supplier' => $request->supplier,
+            'entry_date' => $request->entry_date,
+            'quantity' => $quantity,
+            'unassigned_quantity' => $quantity,
+            'warranty' => $request->warranty,
+        ]);
 
         return response()->json([
             'message' => 'Tool saved successfully',
@@ -63,11 +73,22 @@ class ToolController extends Controller
             'supplier' => 'sometimes|string',
             'entry_date' => 'sometimes|date',
             'quantity' => 'sometimes|integer',
-            'unassigned_quantity' => 'sometimes|integer',
             'warranty' => 'sometimes|string|in:con garantia,sin garantia',
         ]);
 
-        $tool->update($request->all());
+        $oldQuantity = $tool->quantity;
+        $newQuantity = $request->quantity ?? $oldQuantity;
+        $difference = $newQuantity - $oldQuantity;
+
+        $newUnassigned = $tool->unassigned_quantity + $difference;
+
+        $tool->update(array_merge(
+            $request->except(['unassigned_quantity']),
+            [
+                'quantity' => $newQuantity,
+                'unassigned_quantity' => max(0, $newUnassigned),
+            ]
+        ));
 
         return response()->json([
             'message' => 'Tool updated successfully',
