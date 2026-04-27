@@ -49,6 +49,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/reviews', [ReviewController::class, 'store']);
     });
 
+    Route::get('/workers', [WorkerController::class, 'index']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 });
