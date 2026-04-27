@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 🔧 Tools
     Route::get('/tools', [ToolController::class, 'index']);
+    Route::get('/stock', [ToolController::class, 'stock']);
     Route::post('/tool', [ToolController::class, 'store']);
     Route::get('/tool/{id}', [ToolController::class, 'show']);
     Route::put('/tool/{id}', [ToolController::class, 'update']);

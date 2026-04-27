@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tool;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ToolController extends Controller
@@ -10,6 +11,13 @@ class ToolController extends Controller
     public function index()
     {
         return response()->json(Tool::all());
+    }
+
+    public function stock(): JsonResponse
+    {
+        return response()->json(
+            Tool::where('unassigned_quantity', '>', 0)->get()
+        );
     }
 
     public function store(Request $request)
