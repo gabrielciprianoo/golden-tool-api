@@ -22,6 +22,7 @@ Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login
 // 📝 Requests
 Route::get('/requests/worker/{workerId}', [RequestController::class, 'index']);
 Route::post('/requests', [RequestController::class, 'store']);
+Route::patch('/requests/{id}', [RequestController::class, 'update']);
 
 // 🧪 Asignations (libre solo para pruebas)
 Route::get('/asignations', [AsignationController::class, 'index']);

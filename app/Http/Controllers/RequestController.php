@@ -21,6 +21,47 @@ class RequestController extends Controller
         ]);
     }
 
+    public function update(HttpRequest $httpRequest, $id)
+    {
+        $requestModel = Request::find($id);
+
+        if (!$requestModel) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Solicitud no encontrada',
+            ], 404);
+        }
+
+        $signa_applicant = $httpRequest->input('signa_applicant');
+        $signa_authorization = $httpRequest->input('signa_authorization');
+
+        if ($signa_applicant !== null) {
+            $requestModel->signa_applicant = $signa_applicant ?: null;
+        }
+        if ($signa_authorization !== null) {
+            $requestModel->signa_authorization = $signa_authorization ?: null;
+        }
+
+        $hasApplicant = !empty($requestModel->signa_applicant);
+        $hasAuth = !empty($requestModel->signa_authorization);
+
+        if ($hasApplicant && $hasAuth) {
+            $requestModel->state = 'finalizado';
+        } elseif ($hasApplicant || $hasAuth) {
+            $requestModel->state = 'en_proceso';
+        } else {
+            $requestModel->state = 'pendiente';
+        }
+
+        $requestModel->save();
+
+        return response()->json([
+            'success' => true,
+            'data' => $requestModel,
+            'message' => 'Solicitud actualizada correctamente',
+        ]);
+    }
+
     public function store(HttpRequest $request)
     {
         $validator = Validator::make($request->all(), [
