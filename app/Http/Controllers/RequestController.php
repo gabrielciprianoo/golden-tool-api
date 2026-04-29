@@ -12,6 +12,7 @@ class RequestController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'worker_id' => 'required|exists:workers,id',
+            'tool_id' => 'nullable|exists:tools,id',
             'type_request' => 'required|in:PRIMERA_VEZ,SE_ROMPIO,DESGASTE,SE_PERDIO',
             'details_tool' => 'required|string',
             'preferred_brand' => 'nullable|string',
@@ -29,6 +30,7 @@ class RequestController extends Controller
 
         $requestData = Request::create([
             'worker_id' => $request->worker_id,
+            'tool_id' => $request->tool_id ?? null,
             'type_request' => $request->type_request,
             'details_tool' => $request->details_tool,
             'preferred_brand' => $request->preferred_brand,
