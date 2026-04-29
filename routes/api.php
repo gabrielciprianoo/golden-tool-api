@@ -20,6 +20,7 @@ Route::post('/inventory-fix/{toolId}', [AsignationController::class, 'fixInvento
 Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login']);
 
 // 📝 Requests
+Route::get('/requests/worker/{workerId}', [RequestController::class, 'index']);
 Route::post('/requests', [RequestController::class, 'store']);
 
 // 🧪 Asignations (libre solo para pruebas)

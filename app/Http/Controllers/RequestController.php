@@ -8,6 +8,19 @@ use Illuminate\Support\Facades\Validator;
 
 class RequestController extends Controller
 {
+    public function index($workerId)
+    {
+        $requests = Request::with('tool')
+            ->where('worker_id', $workerId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $requests,
+        ]);
+    }
+
     public function store(HttpRequest $request)
     {
         $validator = Validator::make($request->all(), [

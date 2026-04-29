@@ -16,4 +16,14 @@ class Request extends Model
         'signa_authorization',
         'state',
     ];
+
+    public function tool()
+    {
+        return $this->belongsTo(\App\Models\Tool::class);
+    }
+
+    public function worker()
+    {
+        return $this->belongsTo(\App\Models\Worker::class);
+    }
 }
