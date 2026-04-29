@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AsignationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ToolController;
 use App\Http\Controllers\WorkerController;
@@ -17,6 +18,9 @@ Route::post('/inventory-fix/{toolId}', [AsignationController::class, 'fixInvento
 
 // 🔐 Login (con throttle para evitar ataques)
 Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login']);
+
+// 📝 Requests
+Route::post('/requests', [RequestController::class, 'store']);
 
 // 🧪 Asignations (libre solo para pruebas)
 Route::get('/asignations', [AsignationController::class, 'index']);

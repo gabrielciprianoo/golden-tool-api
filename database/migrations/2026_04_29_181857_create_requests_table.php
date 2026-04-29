@@ -16,7 +16,7 @@ return new class extends Migration
 
             // Relaciones
             $table->foreignId('worker_id')->constrained()->onDelete('cascade');
-            $table->foreignId('tool_id')->constrained()->onDelete('cascade');
+            $table->foreignId('tool_id')->nullable()->constrained()->onDelete('cascade');
 
             // Campos propios
             $table->string('type_request');
