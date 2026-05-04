@@ -9,16 +9,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('requests', function (Blueprint $table) {
-            $table->string('signa_applicant')->nullable()->change();
-            $table->string('signa_authorization')->nullable()->change();
+            $table->text('signa_applicant')->nullable()->change();
+            $table->text('signa_authorization')->nullable()->change();
         });
     }
 
     public function down(): void
     {
         Schema::table('requests', function (Blueprint $table) {
-            $table->string('signa_applicant')->change();
-            $table->string('signa_authorization')->change();
+            $table->text('signa_applicant')->change();
+            $table->text('signa_authorization')->change();
         });
     }
 };

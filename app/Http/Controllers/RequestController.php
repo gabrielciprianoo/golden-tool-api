@@ -25,7 +25,7 @@ class RequestController extends Controller
     {
         $requestModel = Request::find($id);
 
-        if (!$requestModel) {
+        if (! $requestModel) {
             return response()->json([
                 'success' => false,
                 'message' => 'Solicitud no encontrada',
@@ -42,15 +42,14 @@ class RequestController extends Controller
             $requestModel->signa_authorization = $signa_authorization ?: null;
         }
 
-        $hasApplicant = !empty($requestModel->signa_applicant);
-        $hasAuth = !empty($requestModel->signa_authorization);
+        $hasApplicant = ! empty($requestModel->signa_applicant);
+        $hasAuth = ! empty($requestModel->signa_authorization);
+        $signatureCount = (int) $hasApplicant + (int) $hasAuth;
 
-        if ($hasApplicant && $hasAuth) {
-            $requestModel->state = 'finalizado';
-        } elseif ($hasApplicant || $hasAuth) {
-            $requestModel->state = 'en_proceso';
+        if ($signatureCount >= 2) {
+            $requestModel->state = 'pendiente_aprobacion';
         } else {
-            $requestModel->state = 'pendiente';
+            $requestModel->state = 'incompleta';
         }
 
         $requestModel->save();
@@ -82,15 +81,14 @@ class RequestController extends Controller
             ], 422);
         }
 
-        $hasApplicant = !empty($request->signa_applicant);
-        $hasAuth = !empty($request->signa_authorization);
+        $hasApplicant = ! empty($request->signa_applicant);
+        $hasAuth = ! empty($request->signa_authorization);
+        $signatureCount = (int) $hasApplicant + (int) $hasAuth;
 
-        if ($hasApplicant && $hasAuth) {
-            $state = 'finalizado';
-        } elseif ($hasApplicant || $hasAuth) {
-            $state = 'en_proceso';
+        if ($signatureCount >= 2) {
+            $state = 'pendiente_aprobacion';
         } else {
-            $state = 'pendiente';
+            $state = 'incompleta';
         }
 
         $requestData = Request::create([
