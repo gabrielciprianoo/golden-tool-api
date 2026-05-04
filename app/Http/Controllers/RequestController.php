@@ -108,4 +108,23 @@ class RequestController extends Controller
             'message' => 'Solicitud creada correctamente',
         ], 201);
     }
+
+    public function destroy($id)
+    {
+        $requestModel = Request::find($id);
+
+        if (! $requestModel) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Solicitud no encontrada',
+            ], 404);
+        }
+
+        $requestModel->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Solicitud eliminada correctamente',
+        ]);
+    }
 }

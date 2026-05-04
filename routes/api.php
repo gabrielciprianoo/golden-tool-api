@@ -23,6 +23,7 @@ Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login
 Route::get('/requests/worker/{workerId}', [RequestController::class, 'index']);
 Route::post('/requests', [RequestController::class, 'store']);
 Route::patch('/requests/{id}', [RequestController::class, 'update']);
+Route::delete('/requests/{id}', [RequestController::class, 'destroy']);
 
 // 🧪 Asignations (libre solo para pruebas)
 Route::get('/asignations', [AsignationController::class, 'index']);
