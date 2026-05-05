@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/reviews', [ReviewController::class, 'index']);
         Route::post('/reviews', [ReviewController::class, 'store']);
+        Route::get('/reviews/{id}', [ReviewController::class, 'show']);
     });
 
     Route::get('/workers', [WorkerController::class, 'index']);
