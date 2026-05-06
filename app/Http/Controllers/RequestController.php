@@ -34,6 +34,7 @@ class RequestController extends Controller
 
         $signa_applicant = $httpRequest->input('signa_applicant');
         $signa_authorization = $httpRequest->input('signa_authorization');
+        $state = $httpRequest->input('state');
 
         if ($signa_applicant !== null) {
             $requestModel->signa_applicant = $signa_applicant ?: null;
@@ -41,15 +42,20 @@ class RequestController extends Controller
         if ($signa_authorization !== null) {
             $requestModel->signa_authorization = $signa_authorization ?: null;
         }
+        if ($state !== null) {
+            $requestModel->state = $state;
+        }
 
-        $hasApplicant = ! empty($requestModel->signa_applicant);
-        $hasAuth = ! empty($requestModel->signa_authorization);
-        $signatureCount = (int) $hasApplicant + (int) $hasAuth;
+        if ($signa_applicant !== null || $signa_authorization !== null) {
+            $hasApplicant = ! empty($requestModel->signa_applicant);
+            $hasAuth = ! empty($requestModel->signa_authorization);
+            $signatureCount = (int) $hasApplicant + (int) $hasAuth;
 
-        if ($signatureCount >= 2) {
-            $requestModel->state = 'pendiente_aprobacion';
-        } else {
-            $requestModel->state = 'incompleta';
+            if ($signatureCount >= 2 && $state === null) {
+                $requestModel->state = 'pendiente_compra';
+            } elseif ($state === null) {
+                $requestModel->state = 'incompleta';
+            }
         }
 
         $requestModel->save();
@@ -86,7 +92,7 @@ class RequestController extends Controller
         $signatureCount = (int) $hasApplicant + (int) $hasAuth;
 
         if ($signatureCount >= 2) {
-            $state = 'pendiente_aprobacion';
+            $state = 'pendiente_compra';
         } else {
             $state = 'incompleta';
         }
