@@ -21,6 +21,22 @@ class RequestController extends Controller
         ]);
     }
 
+    public function indexCreatedBy(HttpRequest $request)
+    {
+        $requests = Request::with('tool', 'worker')
+            ->where(function($q) use ($request) {
+                $q->where('created_by', $request->user()->id)
+                  ->orWhereNull('created_by');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $requests,
+        ]);
+    }
+
     public function update(HttpRequest $httpRequest, $id)
     {
         $requestModel = Request::find($id);
@@ -99,6 +115,7 @@ class RequestController extends Controller
 
         $requestData = Request::create([
             'worker_id' => $request->worker_id,
+            'created_by' => $request->user()->id,
             'tool_id' => $request->tool_id ?? null,
             'type_request' => $request->type_request,
             'details_tool' => $request->details_tool,

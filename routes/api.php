@@ -59,6 +59,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/workers', [WorkerController::class, 'index']);
 
+    // 📝 Requests del usuario actual
+    Route::get('/requests/created-by-me', [RequestController::class, 'indexCreatedBy']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 });

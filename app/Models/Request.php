@@ -8,6 +8,7 @@ class Request extends Model
 {
     protected $fillable = [
         'worker_id',
+        'created_by',
         'tool_id',
         'type_request',
         'details_tool',
@@ -25,5 +26,10 @@ class Request extends Model
     public function worker()
     {
         return $this->belongsTo(\App\Models\Worker::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
     }
 }
