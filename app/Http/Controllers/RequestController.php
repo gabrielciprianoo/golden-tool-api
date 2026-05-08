@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Request;
+use App\Models\Asignation;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class RequestController extends Controller
 {
@@ -51,6 +53,7 @@ class RequestController extends Controller
         $signa_applicant = $httpRequest->input('signa_applicant');
         $signa_authorization = $httpRequest->input('signa_authorization');
         $state = $httpRequest->input('state');
+        $previousState = $requestModel->state;
 
         if ($signa_applicant !== null) {
             $requestModel->signa_applicant = $signa_applicant ?: null;
@@ -75,6 +78,30 @@ class RequestController extends Controller
         }
 
         $requestModel->save();
+
+        // Eliminar asignación si el estado cambia a entrega_confirmada
+        if ($previousState !== 'entrega_confirmada' && $state === 'entrega_confirmada') {
+            $typeRequest = $requestModel->type_request;
+            $toolId = $requestModel->tool_id;
+            $workerId = $requestModel->worker_id;
+
+            // Solo para SE_ROMPIO, DESGASTE y SE_PERDIO
+            if (in_array($typeRequest, ['SE_ROMPIO', 'DESGASTE', 'SE_PERDIO']) && $toolId && $workerId) {
+                $asignation = Asignation::where('worker_id', $workerId)
+                    ->where('tool_id', $toolId)
+                    ->first();
+
+                if ($asignation) {
+                    // Eliminar sin devolver al inventario
+                    $asignation->delete();
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'El trabajador no tiene asignada esta herramienta',
+                    ], 400);
+                }
+            }
+        }
 
         return response()->json([
             'success' => true,
