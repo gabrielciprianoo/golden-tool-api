@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Request;
 use App\Models\Asignation;
+use App\Models\Tool;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -79,7 +80,7 @@ class RequestController extends Controller
 
         $requestModel->save();
 
-        // Eliminar asignación si el estado cambia a entrega_confirmada
+        // Eliminar asignación y decrementar inventario si el estado cambia a entrega_confirmada
         if ($previousState !== 'entrega_confirmada' && $state === 'entrega_confirmada') {
             $typeRequest = $requestModel->type_request;
             $toolId = $requestModel->tool_id;
@@ -87,12 +88,22 @@ class RequestController extends Controller
 
             // Solo para SE_ROMPIO, DESGASTE y SE_PERDIO
             if (in_array($typeRequest, ['SE_ROMPIO', 'DESGASTE', 'SE_PERDIO']) && $toolId && $workerId) {
+                $tool = Tool::find($toolId);
+                
+                if (!$tool || $tool->quantity <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No hay inventario disponible de esta herramienta',
+                    ], 400);
+                }
+                
+                $tool->decrement('quantity', 1);
+                
                 $asignation = Asignation::where('worker_id', $workerId)
                     ->where('tool_id', $toolId)
                     ->first();
 
                 if ($asignation) {
-                    // Eliminar sin devolver al inventario
                     $asignation->delete();
                 } else {
                     return response()->json([

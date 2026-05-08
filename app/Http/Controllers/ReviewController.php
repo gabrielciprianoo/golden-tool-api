@@ -37,7 +37,7 @@ class ReviewController extends Controller
             'items' => 'required|array|min:1',
             'items.*.asignation_id' => 'required|exists:asignations,id',
             'items.*.quantity_present' => 'required|integer|min:0',
-            'items.*.new_state' => 'nullable|in:nuevo,buen estado,regular,mal estado,obsoleto',
+            'items.*.new_state' => 'nullable',
         ]);
 
         try {
@@ -55,7 +55,7 @@ class ReviewController extends Controller
                     $quantityLost = $asignation->assigned_quantity - $quantityPresent;
                     $previousState = $asignation->state;
 
-                    $newState = $item['new_state'];
+                    $newState = $item['new_state'] ?? null;
                     $isObsolete = $newState === 'obsoleto';
 
                     if ($quantityLost > 0) {
@@ -117,6 +117,7 @@ class ReviewController extends Controller
             return response()->json([
                 'message' => 'Error al guardar la revisión',
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ], 500);
         }
     }
