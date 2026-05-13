@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Request;
 use App\Models\Asignation;
+use App\Models\Request;
 use App\Models\Tool;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
 
 class RequestController extends Controller
 {
@@ -27,9 +26,9 @@ class RequestController extends Controller
     public function indexCreatedBy(HttpRequest $request)
     {
         $requests = Request::with('tool', 'worker')
-            ->where(function($q) use ($request) {
+            ->where(function ($q) use ($request) {
                 $q->where('created_by', $request->user()->id)
-                  ->orWhereNull('created_by');
+                    ->orWhereNull('created_by');
             })
             ->orderBy('created_at', 'desc')
             ->get();
@@ -89,16 +88,16 @@ class RequestController extends Controller
             // Solo para SE_ROMPIO, DESGASTE y SE_PERDIO
             if (in_array($typeRequest, ['SE_ROMPIO', 'DESGASTE', 'SE_PERDIO']) && $toolId && $workerId) {
                 $tool = Tool::find($toolId);
-                
-                if (!$tool || $tool->quantity <= 0) {
+
+                if (! $tool || $tool->quantity <= 0) {
                     return response()->json([
                         'success' => false,
                         'message' => 'No hay inventario disponible de esta herramienta',
                     ], 400);
                 }
-                
+
                 $tool->decrement('quantity', 1);
-                
+
                 $asignation = Asignation::where('worker_id', $workerId)
                     ->where('tool_id', $toolId)
                     ->first();
@@ -153,7 +152,7 @@ class RequestController extends Controller
 
         $requestData = Request::create([
             'worker_id' => $request->worker_id,
-            'created_by' => $request->user()->id,
+            'created_by' => $request->user()?->id,
             'tool_id' => $request->tool_id ?? null,
             'type_request' => $request->type_request,
             'details_tool' => $request->details_tool,

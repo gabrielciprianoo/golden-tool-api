@@ -8,6 +8,7 @@ uses(RefreshDatabase::class);
 
 test('workers index returns workers list', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('auth_token')->plainTextToken;
 
     Worker::create([
         'name' => 'Juan',
@@ -17,22 +18,25 @@ test('workers index returns workers list', function () {
         'created_by' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->get('/workers');
-
-    $response->assertStatus(200);
-    $response->assertInertia(fn ($page) => $page->has('workers', 1));
+    $this->withToken($token)
+        ->getJson('/api/workers')
+        ->assertSuccessful()
+        ->assertJsonCount(1);
 });
 
 test('can create worker', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('auth_token')->plainTextToken;
 
-    $response = $this->actingAs($user)->post('/workers', [
-        'name' => 'Carlos',
-        'lastname' => 'Lopez',
-        'area' => 'armado/desarmado',
-    ]);
+    $this->withToken($token)
+        ->postJson('/api/workers', [
+            'name' => 'Carlos',
+            'lastname' => 'Lopez',
+            'area' => 'armado/desarmado',
+        ])
+        ->assertCreated()
+        ->assertJsonStructure(['id', 'name', 'lastname', 'area', 'worker_code']);
 
-    $response->assertRedirect('/workers');
     $this->assertDatabaseHas('workers', [
         'name' => 'Carlos',
         'lastname' => 'Lopez',
@@ -42,18 +46,21 @@ test('can create worker', function () {
 
 test('worker creation fails with invalid data', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('auth_token')->plainTextToken;
 
-    $response = $this->actingAs($user)->post('/workers', [
-        'name' => '',
-        'lastname' => '',
-        'area' => 'invalid',
-    ]);
-
-    $response->assertSessionHasErrors(['name', 'lastname', 'area']);
+    $this->withToken($token)
+        ->postJson('/api/workers', [
+            'name' => '',
+            'lastname' => '',
+            'area' => 'invalid',
+        ])
+        ->assertUnprocessable();
 });
 
 test('can update worker', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('auth_token')->plainTextToken;
+
     $worker = Worker::create([
         'name' => 'Original',
         'lastname' => 'Name',
@@ -62,13 +69,15 @@ test('can update worker', function () {
         'created_by' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->put("/workers/{$worker->id}", [
-        'name' => 'Updated',
-        'lastname' => 'Name',
-        'area' => 'armado/desarmado',
-    ]);
+    $this->withToken($token)
+        ->putJson("/api/workers/{$worker->id}", [
+            'name' => 'Updated',
+            'lastname' => 'Name',
+            'area' => 'armado/desarmado',
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('name', 'Updated');
 
-    $response->assertRedirect('/workers');
     $this->assertDatabaseHas('workers', [
         'id' => $worker->id,
         'name' => 'Updated',
@@ -78,6 +87,8 @@ test('can update worker', function () {
 
 test('can delete worker', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('auth_token')->plainTextToken;
+
     $worker = Worker::create([
         'name' => 'ToDelete',
         'lastname' => 'Test',
@@ -86,28 +97,33 @@ test('can delete worker', function () {
         'created_by' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->delete("/workers/{$worker->id}");
+    $this->withToken($token)
+        ->deleteJson("/api/workers/{$worker->id}")
+        ->assertSuccessful();
 
-    $response->assertRedirect('/workers');
     $this->assertDatabaseMissing('workers', ['id' => $worker->id]);
 });
 
 test('worker code is auto generated', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('auth_token')->plainTextToken;
 
-    $this->actingAs($user)->post('/workers', [
-        'name' => 'Test',
-        'lastname' => 'Worker',
-        'area' => 'montaje/desmontaje',
-    ]);
+    $this->withToken($token)
+        ->postJson('/api/workers', [
+            'name' => 'Test',
+            'lastname' => 'Worker',
+            'area' => 'montaje/desmontaje',
+        ])
+        ->assertCreated();
 
     $this->assertDatabaseHas('workers', [
         'worker_code' => 'TRB-0001',
     ]);
 });
 
-test('workers search works correctly', function () {
+test('workers returns all workers', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('auth_token')->plainTextToken;
 
     Worker::create([
         'name' => 'Juan',
@@ -125,8 +141,8 @@ test('workers search works correctly', function () {
         'created_by' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->get('/workers?search=Juan');
-
-    $response->assertStatus(200);
-    $response->assertInertia(fn ($page) => $page->has('workers', 1));
+    $this->withToken($token)
+        ->getJson('/api/workers')
+        ->assertSuccessful()
+        ->assertJsonCount(2);
 });

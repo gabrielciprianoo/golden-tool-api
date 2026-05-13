@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-function createWorkerWithTool(User $user): array
+function createWorkerForReviews(User $user): array
 {
     $worker = Worker::create([
         'name' => 'Juan',
@@ -44,7 +44,7 @@ describe('reviews index', function () {
     it('returns list of reviews', function () {
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
-        ['worker' => $worker] = createWorkerWithTool($user);
+        ['worker' => $worker] = createWorkerForReviews($user);
 
         Review::create([
             'worker_id' => $worker->id,
@@ -67,7 +67,7 @@ describe('reviews store', function () {
     it('creates a complete review updating tool state', function () {
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
-        ['worker' => $worker, 'asignation' => $asignation] = createWorkerWithTool($user);
+        ['worker' => $worker, 'asignation' => $asignation] = createWorkerForReviews($user);
 
         $this->withToken($token)
             ->postJson('/api/reviews', [
@@ -87,7 +87,7 @@ describe('reviews store', function () {
     it('records lost tool, removes asignation and decrements quantity', function () {
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
-        ['worker' => $worker, 'tool' => $tool, 'asignation' => $asignation] = createWorkerWithTool($user);
+        ['worker' => $worker, 'tool' => $tool, 'asignation' => $asignation] = createWorkerForReviews($user);
 
         $this->withToken($token)
             ->postJson('/api/reviews', [
@@ -107,7 +107,7 @@ describe('reviews store', function () {
     it('allows multiple reviews for the same worker', function () {
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
-        ['worker' => $worker, 'asignation' => $asignation] = createWorkerWithTool($user);
+        ['worker' => $worker, 'asignation' => $asignation] = createWorkerForReviews($user);
 
         $payload = fn () => [
             'worker_id' => $worker->id,
@@ -133,7 +133,7 @@ describe('reviews store', function () {
     it('handles partial loss — decrements quantity and updates remaining', function () {
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
-        ['worker' => $worker, 'tool' => $tool] = createWorkerWithTool($user);
+        ['worker' => $worker, 'tool' => $tool] = createWorkerForReviews($user);
 
         $asignation = Asignation::where('worker_id', $worker->id)->first();
         $asignation->update(['assigned_quantity' => 3]);
@@ -157,7 +157,7 @@ describe('reviews store', function () {
     it('rolls back on failure leaving no partial data', function () {
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
-        ['worker' => $worker] = createWorkerWithTool($user);
+        ['worker' => $worker] = createWorkerForReviews($user);
 
         $this->withToken($token)
             ->postJson('/api/reviews', [

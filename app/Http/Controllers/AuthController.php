@@ -20,20 +20,19 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $request->session()->regenerate();
+        $user = Auth::user();
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login exitoso',
-            'user' => Auth::user()->only(['id', 'name', 'email', 'type_user']),
+            'token' => $token,
+            'user' => $user->only(['id', 'name', 'email', 'type_user']),
         ]);
     }
 
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->user()->tokens()->delete();
 
         return response()->json([
             'message' => 'Logout exitoso',
